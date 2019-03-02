@@ -29,7 +29,7 @@ class ExtractionHelpers {
           + "login|si(debar|gn|ngle)|facebook|twitter|email");
 
   private static final Pattern POSITIVE_CSS_CLASSES_AND_IDS =
-      Pattern.compile("(^(body|content|h?entry|main|page|post|text|blog|story|haupt))"
+      Pattern.compile("(^(body|content|h?entry|main|page|post|text|blog|story|haupt|c\\-wide\\-block))"
           + "|arti(cle|kel)|instapaper_body");
 
   public static final Pattern NEGATIVE_CSS_CLASSES_AND_IDS =
@@ -72,6 +72,14 @@ class ExtractionHelpers {
     Element caption = null;
     List<Element> pEls = new ArrayList<>(5);
     for (Element child : rootEl.children()) {
+      if (child.tagName().equals("figure")) {
+        weight += 50;
+        continue;
+      }
+      if (child.tagName().equals("img")) {
+        weight += 20;
+        continue;
+      }
       String ownText = child.ownText();
 
       // if you are on a paragraph, grab all the text including that surrounded by additional formatting.

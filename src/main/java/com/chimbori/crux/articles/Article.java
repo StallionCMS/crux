@@ -92,7 +92,7 @@ public class Article {
   /**
    * Class which encapsulates the data from an image found under an element
    */
-  static class Image {
+  public static class Image {
     public String src;
     public int weight;
     public String title;
@@ -105,11 +105,15 @@ public class Article {
     private Image() {
     }
 
-    static Image from(Element imgElement) {
+    public static Image from(Element imgElement) {
       Image image = new Image();
       image.element = imgElement;
       // Some sites use data-src to load images lazily, so prefer the data-src attribute if it exists.
-      image.src = !imgElement.attr("data-src").isEmpty() ? imgElement.attr("data-src") : imgElement.attr("src");
+      if (!imgElement.attr("data-lazy-src").isEmpty()) {
+        image.src = imgElement.attr("data-lazy-src");
+      } else {
+        image.src = !imgElement.attr("data-src").isEmpty() ? imgElement.attr("data-src") : imgElement.attr("src");
+      }
       image.width = StringUtils.parseAttrAsInt(imgElement, "width");
       image.height = StringUtils.parseAttrAsInt(imgElement, "height");
       image.alt = imgElement.attr("alt");

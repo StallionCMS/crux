@@ -41,7 +41,7 @@ class PostprocessHelpers {
    * to the list of tags that callers can be expected to be able to handle.
    */
   private static final Set<String> RETAIN_TAGS = new HashSet<>(Arrays.asList(
-      "p", "b", "i", "u", "strong", "em", "a", "pre", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote"
+      "p", "b", "i", "u", "strong", "em", "a", "pre", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "img", "figure", "figcaption", "picture", "span", "div"
   ));
 
   /**
@@ -57,7 +57,7 @@ class PostprocessHelpers {
    * will be retained.
    */
   private static final Set<String> ATTRIBUTES_TO_RETAIN_IN_HTML = new HashSet<>(Arrays.asList(
-      "href"
+      "href", "src", "srcset", "data-src", "data-lazy-src"
   ));
 
   /**
@@ -67,7 +67,7 @@ class PostprocessHelpers {
    * top-level children.
    */
   private static final Set<String> RETAIN_TAGS_TOP_LEVEL = new HashSet<>(Arrays.asList(
-      "p", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "li"
+      "p", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "li", "div", "figure"
   ));
 
   static Document postprocess(Element topNode) {
@@ -83,7 +83,7 @@ class PostprocessHelpers {
     removeTagsButRetainContent(topNode);
     removeTagsNotLikelyToBeParagraphs(topNode);
     removeTopLevelTagsNotLikelyToBeParagraphs(topNode);
-    removeShortParagraphs(topNode);
+    //removeShortParagraphs(topNode);
     removeDisallowedAttributes(topNode);
 
     for (Node node : topNode.childNodes()) {
@@ -129,7 +129,9 @@ class PostprocessHelpers {
       removeTagsButRetainContent(childElement);
       if (REMOVE_TAGS_BUT_RETAIN_CONTENT.contains(childElement.tagName())) {
         Log.i("removeTagsButRetainContent: [%s] %s", childElement.tagName(), childElement.outerHtml());
-        childElement.tagName("p");  // Set the wrapper tag to <p> instead of unwrapping them.
+
+        // Don't want to change div's and figures and such into p's.
+        //childElement.tagName("p");  // Set the wrapper tag to <p> instead of unwrapping them.
       }
     }
   }
@@ -174,7 +176,8 @@ class PostprocessHelpers {
     Elements elementsWithGravityScore = topNode.select(ExtractionHelpers.GRAVITY_SCORE_SELECTOR);
     for (Element element : elementsWithGravityScore) {
       int score = Integer.parseInt(element.attr(ExtractionHelpers.GRAVITY_SCORE_ATTRIBUTE));
-      if (score < 0 || element.text().length() < MIN_LENGTH_FOR_PARAGRAPHS) {
+      //if (score < 0 || element.text().length() < MIN_LENGTH_FOR_PARAGRAPHS) {
+      if (score < 0) {
         Log.printAndRemove(element, "removeNodesWithNegativeScores");
       }
     }
@@ -183,8 +186,7 @@ class PostprocessHelpers {
   static private boolean isUnlikely(Element element) {
     String styleAttribute = element.attr("style");
     String classAttribute = element.attr("class");
-    return classAttribute != null && classAttribute.toLowerCase().contains("caption")
-        || UNLIKELY_CSS_STYLES.matcher(styleAttribute).find()
+    return UNLIKELY_CSS_STYLES.matcher(styleAttribute).find()
         || classAttribute != null && UNLIKELY_CSS_STYLES.matcher(classAttribute).find();
   }
 
